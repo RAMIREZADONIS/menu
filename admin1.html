@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Menú Digital</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-bootstrap-4/bootstrap-4.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .navbar {
+            background-color: #3f1365;
+            color: rgb(234, 217, 217);
+        }
+
+        .form-control, .btn {
+            margin-bottom: 15px;
+        }
+
+        .table {
+            background-color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="mb-4">Administración de Productos</h1>
+        <form id="product-form">
+            <div class="form-row">
+                <div class="col-md-3">
+                    <input type="text" id="product-name" class="form-control" placeholder="Nombre del producto" required>
+                </div>
+                <div class="col-md-3">
+                    <input type="number" id="product-price" class="form-control" placeholder="Precio del producto" required>
+                </div>
+                <div class="col-md-3">
+                    <input type="text" id="product-category" class="form-control" placeholder="Categoría" required>
+                </div>
+                <div class="col-md-3">
+                    <input type="text" id="product-image" class="form-control" placeholder="URL de la imagen" required>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Añadir Producto</button>
+        </form>
+        <h2 class="mt-5">Lista de Productos</h2>
+        <table class="table table-striped mt-3" id="product-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Precio</th>
+                    <th>Categoría</th>
+                    <th>Imagen</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Aquí se llenarán los productos -->
+            </tbody>
+        </table>
+    </div>
+    
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const productForm = document.getElementById('product-form');
+            const productNameInput = document.getElementById('product-name');
+            const productPriceInput = document.getElementById('product-price');
+            const productCategoryInput = document.getElementById('product-category');
+            const productImageInput = document.getElementById('product-image');
+            const productTableBody = document.getElementById('product-table').querySelector('tbody');
+            
+            function loadProducts() {
+                const products = JSON.parse(localStorage.getItem('products')) || [];
+                productTableBody.innerHTML = products.map((product, index) => `
+                    <tr>
+                        <td>${product.name}</td>
+                        <td>$${product.price.toFixed(2)}</td>
+                        <td>${product.category}</td>
+                        <td><img src="${product.image}" alt="${product.name}" style="max-width: 100px;"></td>
+                        <td>
+                            <button class="btn btn-warning btn-sm edit-product" data-index="${index}">Editar</button>
+                            <button class="btn btn-danger btn-sm delete-product" data-index="${index}">Eliminar</button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+
+            productForm.addEventListener('submit', (event) => {
+                event.preventDefault();
+
+                const name = productNameInput.value.trim();
+                const price = parseFloat(productPriceInput.value.trim());
+                const category = productCategoryInput.value.trim();
+                const image = productImageInput.value.trim();
+
+                const products = JSON.parse(localStorage.getItem('products')) || [];
+                products.push({ name, price, category, image });
+                localStorage.setItem('products', JSON.stringify(products));
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Producto agregado',
+                    text: `${name} ha sido agregado a la lista.`,
+                    timer: 2000
+                });
+
+                productForm.reset();
+                loadProducts();
+            });
+
+            productTableBody.addEventListener('click', (event) => {
+                if (event.target.classList.contains('delete-product')) {
+                    const index = parseInt(event.target.getAttribute('data-index'));
+                    const products = JSON.parse(localStorage.getItem('products')) || [];
+                    products.splice(index, 1);
+                    localStorage.setItem('products', JSON.stringify(products));
+                    loadProducts();
+                } else if (event.target.classList.contains('edit-product')) {
+                    const index = parseInt(event.target.getAttribute('data-index'));
+                    const products = JSON.parse(localStorage.getItem('products')) || [];
+                    const product = products[index];
+
+                    productNameInput.value = product.name;
+                    productPriceInput.value = product.price;
+                    productCategoryInput.value = product.category;
+                    productImageInput.value = product.image;
+
+                    products.splice(index, 1);
+                    localStorage.setItem('products', JSON.stringify(products));
+                    loadProducts();
+                }
+            });
+
+            loadProducts();
+        });
+    </script>
+</body>
+</html>
